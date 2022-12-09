@@ -86,12 +86,21 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterMethodDeclaration(ToorlaParser.MethodDeclarationContext ctx) {
+        var methodType = isConstructorMethod(ctx) ? "constructor" : "method";
+        var accessModifier = (ctx.access_modifier() == null) ? "public" : ctx.access_modifier().getText();
+        System.out.printf("class %s: %s / return type: %s/ type: %s{\n".indent(indentation), methodType, ctx.methodName.getText(), ctx.t.getText(), accessModifier);
+    }
 
+    private boolean isConstructorMethod(ToorlaParser.MethodDeclarationContext ctx) {
+        var classContext = (ToorlaParser.ClassDeclarationContext) ctx.parent;
+        var className = classContext.className.getText();
+        var methodName = ctx.methodName.getText();
+        return methodName.equals(className);
     }
 
     @Override
     public void exitMethodDeclaration(ToorlaParser.MethodDeclarationContext ctx) {
-
+        System.out.print("}".indent(indentation));
     }
 
     @Override
