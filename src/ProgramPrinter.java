@@ -1,6 +1,7 @@
 import gen.ToorlaListener;
 import gen.ToorlaParser;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -89,6 +90,10 @@ public class ProgramPrinter implements ToorlaListener {
         var methodType = isConstructorMethod(ctx) ? "constructor" : "method";
         var accessModifier = (ctx.access_modifier() == null) ? "public" : ctx.access_modifier().getText();
         System.out.printf("class %s: %s / return type: %s/ type: %s{\n".indent(indentation), methodType, ctx.methodName.getText(), ctx.t.getText(), accessModifier);
+
+        increaseIndentation();
+        System.out.println(getParameterList(ctx).indent(indentation));
+        decreaseIndentation();
     }
 
     private boolean isConstructorMethod(ToorlaParser.MethodDeclarationContext ctx) {
@@ -96,6 +101,28 @@ public class ProgramPrinter implements ToorlaListener {
         var className = classContext.className.getText();
         var methodName = ctx.methodName.getText();
         return methodName.equals(className);
+    }
+
+    private String getParameterList(ToorlaParser.MethodDeclarationContext ctx) {
+        var parameterNameList = ctx.ID().subList(1, ctx.ID().size());
+        var parameterTypeList = ctx.toorlaType().subList(0, ctx.toorlaType().size() - 1);
+
+        final int paramSize = parameterTypeList.size();
+
+        StringBuilder output = new StringBuilder();
+        for(int i = 0; i < paramSize; i++) {
+            output
+                    .append("type: ")
+                    .append(parameterTypeList.get(i).getText())
+                    .append(" / ")
+                    .append("name: ")
+                    .append(parameterNameList.get(i).getText());
+
+            if(i != (paramSize - 1))
+                output.append(", ");
+        }
+
+        return "parameter list: [" + output + "]";
     }
 
     @Override
