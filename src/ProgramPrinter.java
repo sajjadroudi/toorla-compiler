@@ -66,7 +66,7 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterFieldDeclaration(ToorlaParser.FieldDeclarationContext ctx) {
-
+        System.out.printf("field: %s / type: %s\n".indent(indentation), ctx.ID(0), ctx.fieldType.getText());
     }
 
     @Override
