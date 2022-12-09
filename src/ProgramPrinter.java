@@ -5,24 +5,53 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class ProgramPrinter implements ToorlaListener {
+
+    private static final int INDENTATION_UNIT = 4;
+
+    private int indentation = 0;
+
+    private void increaseIndentation() {
+        indentation += INDENTATION_UNIT;
+    }
+
+    private void decreaseIndentation() {
+        indentation -= INDENTATION_UNIT;
+    }
+
     @Override
     public void enterProgram(ToorlaParser.ProgramContext ctx) {
-
+        System.out.println("program start{");
+        increaseIndentation();
     }
 
     @Override
     public void exitProgram(ToorlaParser.ProgramContext ctx) {
-
+        decreaseIndentation();
+        System.out.println("}");
     }
 
     @Override
     public void enterClassDeclaration(ToorlaParser.ClassDeclarationContext ctx) {
+        var className = ctx.ID(0).toString();
+        var isEntry = (ctx.parent instanceof ToorlaParser.EntryClassDeclarationContext);
 
+        System.out.printf("class: %s / class parent: %s / isEntry: %s {".indent(indentation), className, getParentClassName(ctx), isEntry);
+        increaseIndentation();
+    }
+
+    private String getParentClassName(ToorlaParser.ClassDeclarationContext ctx) {
+        var parentClass = ctx.ID(1);
+
+        if(parentClass == null)
+            return "none";
+        else
+            return parentClass.toString();
     }
 
     @Override
     public void exitClassDeclaration(ToorlaParser.ClassDeclarationContext ctx) {
-
+        decreaseIndentation();
+        System.out.print("}".indent(indentation));
     }
 
     @Override
