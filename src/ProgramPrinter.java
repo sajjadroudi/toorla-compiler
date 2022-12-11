@@ -1,13 +1,19 @@
 import gen.ToorlaListener;
 import gen.ToorlaParser;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class ProgramPrinter implements ToorlaListener {
 
     private static final int INDENTATION_UNIT = 4;
+    private static final Class[] blockClasses = {
+            ToorlaParser.ClosedConditionalContext.class,
+            ToorlaParser.OpenConditionalContext.class,
+            ToorlaParser.StatementClosedLoopContext.class,
+            ToorlaParser.StatementOpenLoopContext.class
+    };
 
     private int indentation = 0;
 
@@ -92,7 +98,7 @@ public class ProgramPrinter implements ToorlaListener {
         System.out.printf("class %s: %s / return type: %s/ type: %s{\n".indent(indentation), methodType, ctx.methodName.getText(), ctx.t.getText(), accessModifier);
 
         increaseIndentation();
-        System.out.println(getParameterList(ctx).indent(indentation));
+        System.out.print(getParameterList(ctx).indent(indentation));
         decreaseIndentation();
     }
 
@@ -140,34 +146,73 @@ public class ProgramPrinter implements ToorlaListener {
 
     }
 
+    private boolean hasChildBlock(ParserRuleContext ctx) {
+        for(var child : ctx.children) {
+            if(isBlock(child)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isBlock(ParseTree ctx) {
+        for(Class clazz : blockClasses) {
+            if(clazz.isInstance(ctx)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void startProducingNestedBlock(ParserRuleContext ctx) {
+        increaseIndentation();
+        if(hasChildBlock(ctx)) {
+            System.out.print("nested {".indent(indentation));
+        }
+    }
+
+    private void endProducingNestedBlock(ParserRuleContext ctx) {
+        if(hasChildBlock(ctx)) {
+            System.out.print("}".indent(indentation));
+        }
+        decreaseIndentation();
+    }
+
     @Override
     public void enterClosedConditional(ToorlaParser.ClosedConditionalContext ctx) {
-
+        startProducingNestedBlock(ctx);
     }
 
     @Override
     public void exitClosedConditional(ToorlaParser.ClosedConditionalContext ctx) {
-
+        endProducingNestedBlock(ctx);
     }
 
     @Override
     public void enterOpenConditional(ToorlaParser.OpenConditionalContext ctx) {
-
+        startProducingNestedBlock(ctx);
     }
 
     @Override
     public void exitOpenConditional(ToorlaParser.OpenConditionalContext ctx) {
-
+        endProducingNestedBlock(ctx);
     }
 
     @Override
     public void enterOpenStatement(ToorlaParser.OpenStatementContext ctx) {
-
+        increaseIndentation();
+        if(hasChildBlock(ctx)) {
+            System.out.print("nested {".indent(indentation));
+        }
     }
 
     @Override
     public void exitOpenStatement(ToorlaParser.OpenStatementContext ctx) {
-
+        if(hasChildBlock(ctx)) {
+            System.out.print("}".indent(indentation));
+        }
+        decreaseIndentation();
     }
 
     @Override
@@ -232,22 +277,22 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterStatementClosedLoop(ToorlaParser.StatementClosedLoopContext ctx) {
-
+        startProducingNestedBlock(ctx);
     }
 
     @Override
     public void exitStatementClosedLoop(ToorlaParser.StatementClosedLoopContext ctx) {
-
+        endProducingNestedBlock(ctx);
     }
 
     @Override
     public void enterStatementOpenLoop(ToorlaParser.StatementOpenLoopContext ctx) {
-
+        startProducingNestedBlock(ctx);
     }
 
     @Override
     public void exitStatementOpenLoop(ToorlaParser.StatementOpenLoopContext ctx) {
-
+        endProducingNestedBlock(ctx);
     }
 
     @Override
