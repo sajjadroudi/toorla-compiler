@@ -27,7 +27,7 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterProgram(ToorlaParser.ProgramContext ctx) {
-        System.out.println("program start{");
+        System.out.println("program start {");
         increaseIndentation();
     }
 
@@ -99,7 +99,6 @@ public class ProgramPrinter implements ToorlaListener {
 
         increaseIndentation();
         System.out.print(getParameterList(ctx).indent(indentation));
-        decreaseIndentation();
     }
 
     private boolean isConstructorMethod(ToorlaParser.MethodDeclarationContext ctx) {
@@ -133,6 +132,7 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void exitMethodDeclaration(ToorlaParser.MethodDeclarationContext ctx) {
+        decreaseIndentation();
         System.out.print("}".indent(indentation));
     }
 
@@ -166,17 +166,17 @@ public class ProgramPrinter implements ToorlaListener {
     }
 
     private void startProducingNestedBlock(ParserRuleContext ctx) {
-        increaseIndentation();
         if(hasChildBlock(ctx)) {
             System.out.print("nested {".indent(indentation));
+            increaseIndentation();
         }
     }
 
     private void endProducingNestedBlock(ParserRuleContext ctx) {
         if(hasChildBlock(ctx)) {
+            decreaseIndentation();
             System.out.print("}".indent(indentation));
         }
-        decreaseIndentation();
     }
 
     @Override
@@ -201,18 +201,12 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterOpenStatement(ToorlaParser.OpenStatementContext ctx) {
-        increaseIndentation();
-        if(hasChildBlock(ctx)) {
-            System.out.print("nested {".indent(indentation));
-        }
+
     }
 
     @Override
     public void exitOpenStatement(ToorlaParser.OpenStatementContext ctx) {
-        if(hasChildBlock(ctx)) {
-            System.out.print("}".indent(indentation));
-        }
-        decreaseIndentation();
+
     }
 
     @Override
@@ -227,7 +221,10 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterStatementVarDef(ToorlaParser.StatementVarDefContext ctx) {
-
+        var variableNames = ctx.ID();
+        for(var variableName : variableNames) {
+            System.out.printf("field: %s / type: local var".indent(indentation), variableName);
+        }
     }
 
     @Override
