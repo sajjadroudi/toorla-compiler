@@ -179,12 +179,14 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterStatementBlock(ToorlaParser.StatementBlockContext ctx) {
-
+        println("nested {");
+        increaseIndentation();
     }
 
     @Override
     public void exitStatementBlock(ToorlaParser.StatementBlockContext ctx) {
-
+        decreaseIndentation();
+        println("}");
     }
 
     @Override
