@@ -33,6 +33,18 @@ public class Helper {
         return "parameter list: [" + output + "]";
     }
 
+    public static boolean isMainMethod(ToorlaParser.MethodDeclarationContext ctx) {
+        var methodName = ctx.methodName.getText();
+        var returnType = ctx.t.getText();
+        var accessModifier = (ctx.access_modifier() == null) ? "public" : ctx.access_modifier().getText();
+
+        return "main".equals(methodName) && "int".equals(returnType) && "public".equals(accessModifier) && Helper.hasNotAnyParameter(ctx);
+    }
+    private static boolean hasNotAnyParameter(ToorlaParser.MethodDeclarationContext ctx) {
+        var parameterNameList = ctx.ID().subList(1, ctx.ID().size());
+        return parameterNameList.isEmpty();
+    }
+
     public static boolean hasChildBlock(ParserRuleContext ctx) {
         for(var child : ctx.children) {
             if(isBlock(child)) {
