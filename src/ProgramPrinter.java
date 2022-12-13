@@ -252,7 +252,7 @@ public class ProgramPrinter implements ToorlaListener {
         try {
             ToorlaParser.ExpressionOtherContext expression = ctx.right.e.a.e.c.a.m.u.m.o;
             if(expression.st != null) {
-                var type = expression.st.getText() + '[' + expression.size.getText() + ']';
+                var type = expression.st.getText() + "[]";
                 println("field: %s / type: %s", ctx.left.getText(), type);
             } else if(expression.i != null) {
                 println("field: %s / type: %s", ctx.left.getText(), expression.i.getText());
