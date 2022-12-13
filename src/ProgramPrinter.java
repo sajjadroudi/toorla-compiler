@@ -1,6 +1,7 @@
 import gen.ToorlaListener;
 import gen.ToorlaParser;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -248,7 +249,17 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterStatementAssignment(ToorlaParser.StatementAssignmentContext ctx) {
+        try {
+            ToorlaParser.ExpressionOtherContext expression = ctx.right.e.a.e.c.a.m.u.m.o;
+            if(expression.st != null) {
+                var type = expression.st.getText() + '[' + expression.size.getText() + ']';
+                println("field: %s / type: %s", ctx.left.getText(), type);
+            } else if(expression.i != null) {
+                println("field: %s / type: %s", ctx.left.getText(), expression.i.getText());
+            }
+        } catch (NullPointerException ignored) {
 
+        }
     }
 
     @Override
