@@ -33,6 +33,35 @@ public class Helper {
         return "parameter list: [" + output + "]";
     }
 
+    public static String getParameterListIndexed(ToorlaParser.MethodDeclarationContext ctx) {
+        var parameterNameList = ctx.ID().subList(1, ctx.ID().size());
+        var parameterTypeList = ctx.toorlaType().subList(0, ctx.toorlaType().size() - 1);
+
+        final int paramSize = parameterTypeList.size();
+
+        StringBuilder output = new StringBuilder();
+        for(int i = 0; i < paramSize; i++) {
+            output
+                    .append("[")
+                    .append("name: ")
+                    .append(parameterNameList.get(i).getText())
+                    .append(", type: ")
+                    .append(parameterTypeList.get(i).getText())
+                    .append(", index: ")
+                    .append(i + 1)
+                    .append("]");
+
+
+            if(i != (paramSize - 1))
+                output.append(", ");
+        }
+
+        if(output.isEmpty())
+            return "[]";
+
+        return output.toString();
+    }
+
     public static boolean isMainMethod(ToorlaParser.MethodDeclarationContext ctx) {
         var methodName = ctx.methodName.getText();
         var returnType = ctx.t.getText();

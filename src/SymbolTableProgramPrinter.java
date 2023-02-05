@@ -76,12 +76,29 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterMethodDeclaration(ToorlaParser.MethodDeclarationContext ctx) {
+        var methodType = Helper.isConstructorMethod(ctx) ? "constructor" : "method";
+        var accessModifier = (ctx.access_modifier() == null) ? "public" : ctx.access_modifier().getText();
+        var methodName = ctx.methodName.getText();
+        var returnType = ctx.t.getText();
 
+        var key = methodType + "_" + methodName;
+        var value = String.format(
+                "%s (name: %s) (return type: [%s]) (parameter list: %s) (access modifier: %s)",
+                methodType,
+                methodName,
+                returnType,
+                Helper.getParameterListIndexed(ctx),
+                accessModifier
+        );
+        scopes.peek().insert(key, value);
+
+        var newScope = new SymbolTable(methodName, ctx.start.getLine(), scopes.peek());
+        scopes.push(newScope);
     }
 
     @Override
     public void exitMethodDeclaration(ToorlaParser.MethodDeclarationContext ctx) {
-
+        scopes.pop();
     }
 
     @Override
