@@ -2,6 +2,8 @@ import gen.ToorlaParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.util.ArrayList;
+
 public class Helper {
 
     public static boolean isConstructorMethod(ToorlaParser.MethodDeclarationContext ctx) {
@@ -60,6 +62,22 @@ public class Helper {
             return "[]";
 
         return output.toString();
+    }
+
+    public static ParameterModel[] getParameters(ToorlaParser.MethodDeclarationContext ctx) {
+        var parameterNameList = ctx.ID().subList(1, ctx.ID().size());
+        var parameterTypeList = ctx.toorlaType().subList(0, ctx.toorlaType().size() - 1);
+
+        final int paramSize = parameterTypeList.size();
+
+        var list = new ArrayList<ParameterModel>();
+
+        for(int i = 0; i < paramSize; i++) {
+            var model = new ParameterModel(parameterNameList.get(i).getText(), parameterTypeList.get(i).getText());
+            list.add(model);
+        }
+
+        return list.toArray(new ParameterModel[0]);
     }
 
     public static boolean isMainMethod(ToorlaParser.MethodDeclarationContext ctx) {

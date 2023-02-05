@@ -94,6 +94,18 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
         var newScope = new SymbolTable(methodName, ctx.start.getLine(), scopes.peek());
         scopes.push(newScope);
+
+        var parameters = Helper.getParameters(ctx);
+        for(ParameterModel param : parameters) {
+            var fieldKey = "field_" + param.name;
+            var fieldValue = String.format(
+                    "ParamField (name: %s) (type: %s) (isDefined: %s)",
+                    param.name,
+                    param.type,
+                    param.isDefined
+            );
+            scopes.peek().insert(fieldKey, fieldValue);
+        }
     }
 
     @Override
