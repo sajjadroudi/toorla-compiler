@@ -40,8 +40,7 @@ public class ProgramPrinter implements ToorlaListener {
     @Override
     public void enterClassDeclaration(ToorlaParser.ClassDeclarationContext ctx) {
         var className = ctx.ID(0).toString();
-        var parentClassName = (Helper.getParentClassName(ctx) == null) ? "none" : Helper.getParentClassName(ctx);
-        print("class: %s / class parent: %s / isEntry: %s {", className, parentClassName, Helper.isEntryClass(ctx));
+        print("class: %s / class parent: %s / isEntry: %s {", className, Helper.getParentClassName(ctx), Helper.isEntryClass(ctx));
         increaseIndentation();
     }
 

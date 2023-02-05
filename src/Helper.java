@@ -76,7 +76,7 @@ public class Helper {
         var parentClass = ctx.ID(1);
 
         if(parentClass == null)
-            return null;
+            return "none";
 
         return parentClass.toString();
     }

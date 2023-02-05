@@ -27,7 +27,7 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
         var isEntry = Helper.isEntryClass(ctx);
 
         var key = "class_" + className;
-        var value = String.format("class (name: %s) (parent: %s) (isEntry: %s)", className, parentClassName, isEntry);
+        var value = String.format("Class (name: %s) (parent: %s) (isEntry: %s)", className, parentClassName, isEntry);
         scopes.peek().insert(key, value);
 
         var newScope = new SymbolTable(className, ctx.start.getLine(), scopes.peek());
@@ -51,7 +51,12 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterFieldDeclaration(ToorlaParser.FieldDeclarationContext ctx) {
+        var fieldName = ctx.ID(0).toString();
+        var type = ctx.fieldType.getText();
 
+        var key = "field_" + fieldName;
+        var value = String.format("ClassField (name: %s) (type: %s, isDefined: true)", fieldName, type);
+        scopes.peek().insert(key, value);
     }
 
     @Override
