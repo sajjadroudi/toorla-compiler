@@ -16,10 +16,12 @@ public class Compiler {
 
     public static void main(String[] args) throws IOException {
         ParseTree tree = buildTree();
-        ToorlaListener listener = new ProgramPrinter();
+        ToorlaListener listener = new SymbolTableProgramPrinter();
 
         ParseTreeWalker walker = new ParseTreeWalker();
         walker.walk(listener, tree);
+
+        SymbolTable.getAllInstances().forEach(System.out::println);
     }
 
     private static ParseTree buildTree() throws IOException {

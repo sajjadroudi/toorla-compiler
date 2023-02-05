@@ -76,9 +76,9 @@ public class Helper {
         var parentClass = ctx.ID(1);
 
         if(parentClass == null)
-            return "none";
-        else
-            return parentClass.toString();
+            return null;
+
+        return parentClass.toString();
     }
 
     public static boolean isEntryClass(ToorlaParser.ClassDeclarationContext ctx) {

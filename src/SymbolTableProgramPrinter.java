@@ -1,54 +1,42 @@
 import gen.ToorlaListener;
 import gen.ToorlaParser;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-public class ProgramPrinter implements ToorlaListener {
+import java.util.Stack;
 
-    private final Printer printer = new Printer();
+public class SymbolTableProgramPrinter implements ToorlaListener  {
 
-    private void increaseIndentation() {
-        printer.increaseIndentation();
-    }
-
-    private void decreaseIndentation() {
-        printer.decreaseIndentation();
-    }
-
-    private void println(String format, Object... args) {
-        printer.println(format, args);
-    }
-
-    private void print(String format, Object... args) {
-        printer.print(format, args);
-    }
+    private final Stack<SymbolTable> scopes = new Stack<>();
 
     @Override
     public void enterProgram(ToorlaParser.ProgramContext ctx) {
-        println("program start {");
-        increaseIndentation();
+        scopes.push(new SymbolTable("program", ctx.start.getLine(), null));
     }
 
     @Override
     public void exitProgram(ToorlaParser.ProgramContext ctx) {
-        decreaseIndentation();
-        println("}");
+
     }
 
     @Override
     public void enterClassDeclaration(ToorlaParser.ClassDeclarationContext ctx) {
         var className = ctx.ID(0).toString();
-        var parentClassName = (Helper.getParentClassName(ctx) == null) ? "none" : Helper.getParentClassName(ctx);
-        print("class: %s / class parent: %s / isEntry: %s {", className, parentClassName, Helper.isEntryClass(ctx));
-        increaseIndentation();
+        var parentClassName = Helper.getParentClassName(ctx);
+        var isEntry = Helper.isEntryClass(ctx);
+
+        var key = "class_" + className;
+        var value = String.format("class (name: %s) (parent: %s) (isEntry: %s)", className, parentClassName, isEntry);
+        scopes.peek().insert(key, value);
+
+        var newScope = new SymbolTable(className, ctx.start.getLine(), scopes.peek());
+        scopes.push(newScope);
     }
 
     @Override
     public void exitClassDeclaration(ToorlaParser.ClassDeclarationContext ctx) {
-        decreaseIndentation();
-        print("}");
+        scopes.pop();
     }
 
     @Override
@@ -63,7 +51,7 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterFieldDeclaration(ToorlaParser.FieldDeclarationContext ctx) {
-        println("field: %s / type: %s", ctx.ID(0), ctx.fieldType.getText());
+
     }
 
     @Override
@@ -83,22 +71,12 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterMethodDeclaration(ToorlaParser.MethodDeclarationContext ctx) {
-        if(Helper.isMainMethod(ctx)) {
-            println("main method / type: int {");
-        } else {
-            var methodType = Helper.isConstructorMethod(ctx) ? "constructor" : "method";
-            var accessModifier = (ctx.access_modifier() == null) ? "public" : ctx.access_modifier().getText();
-            println("class %s: %s / return type: %s/ type: %s{", methodType, ctx.methodName.getText(), ctx.t.getText(), accessModifier);
-        }
 
-        increaseIndentation();
-        print(Helper.getParameterList(ctx));
     }
 
     @Override
     public void exitMethodDeclaration(ToorlaParser.MethodDeclarationContext ctx) {
-        decreaseIndentation();
-        print("}");
+
     }
 
     @Override
@@ -111,38 +89,24 @@ public class ProgramPrinter implements ToorlaListener {
 
     }
 
-    private void startProducingNestedBlock(ParserRuleContext ctx) {
-        if(Helper.hasChildBlock(ctx)) {
-            print("nested {");
-            increaseIndentation();
-        }
-    }
-
-    private void endProducingNestedBlock(ParserRuleContext ctx) {
-        if(Helper.hasChildBlock(ctx)) {
-            decreaseIndentation();
-            print("}");
-        }
-    }
-
     @Override
     public void enterClosedConditional(ToorlaParser.ClosedConditionalContext ctx) {
-        startProducingNestedBlock(ctx);
+
     }
 
     @Override
     public void exitClosedConditional(ToorlaParser.ClosedConditionalContext ctx) {
-        endProducingNestedBlock(ctx);
+
     }
 
     @Override
     public void enterOpenConditional(ToorlaParser.OpenConditionalContext ctx) {
-        startProducingNestedBlock(ctx);
+
     }
 
     @Override
     public void exitOpenConditional(ToorlaParser.OpenConditionalContext ctx) {
-        endProducingNestedBlock(ctx);
+
     }
 
     @Override
@@ -167,10 +131,7 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterStatementVarDef(ToorlaParser.StatementVarDefContext ctx) {
-        var variableNames = ctx.ID();
-        for(var variableName : variableNames) {
-            print("field: %s / type: local var", variableName);
-        }
+
     }
 
     @Override
@@ -180,14 +141,12 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterStatementBlock(ToorlaParser.StatementBlockContext ctx) {
-        println("nested {");
-        increaseIndentation();
+
     }
 
     @Override
     public void exitStatementBlock(ToorlaParser.StatementBlockContext ctx) {
-        decreaseIndentation();
-        println("}");
+
     }
 
     @Override
@@ -222,22 +181,22 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterStatementClosedLoop(ToorlaParser.StatementClosedLoopContext ctx) {
-        startProducingNestedBlock(ctx);
+
     }
 
     @Override
     public void exitStatementClosedLoop(ToorlaParser.StatementClosedLoopContext ctx) {
-        endProducingNestedBlock(ctx);
+
     }
 
     @Override
     public void enterStatementOpenLoop(ToorlaParser.StatementOpenLoopContext ctx) {
-        startProducingNestedBlock(ctx);
+
     }
 
     @Override
     public void exitStatementOpenLoop(ToorlaParser.StatementOpenLoopContext ctx) {
-        endProducingNestedBlock(ctx);
+
     }
 
     @Override
@@ -252,17 +211,7 @@ public class ProgramPrinter implements ToorlaListener {
 
     @Override
     public void enterStatementAssignment(ToorlaParser.StatementAssignmentContext ctx) {
-        try {
-            ToorlaParser.ExpressionOtherContext expression = ctx.right.e.a.e.c.a.m.u.m.o;
-            if(expression.st != null) {
-                var type = expression.st.getText() + "[]";
-                println("field: %s / type: %s", ctx.left.getText(), type);
-            } else if(expression.i != null) {
-                println("field: %s / type: %s", ctx.left.getText(), expression.i.getText());
-            }
-        } catch (NullPointerException ignored) {
 
-        }
     }
 
     @Override
