@@ -12,6 +12,8 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
     private boolean isAnalyzingMethodVar = false;
     private String currentMethodVarType = null;
 
+    private boolean isInsideALocalBlock = false;
+
     @Override
     public void enterProgram(ToorlaParser.ProgramContext ctx) {
         scopes.push(new SymbolTable("program", ctx.start.getLine(), null));
@@ -127,7 +129,11 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterClosedConditional(ToorlaParser.ClosedConditionalContext ctx) {
-        var newScope = new SymbolTable("if", ctx.start.getLine(), scopes.peek());
+        String name = "if";
+        if(isInsideALocalBlock)
+            name = "nested";
+
+        var newScope = new SymbolTable(name, ctx.start.getLine(), scopes.peek());
         scopes.push(newScope);
     }
 
@@ -138,7 +144,11 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterOpenConditional(ToorlaParser.OpenConditionalContext ctx) {
-        var newScope = new SymbolTable("if", ctx.start.getLine(), scopes.peek());
+        String name = "if";
+        if(isInsideALocalBlock)
+            name = "nested";
+
+        var newScope = new SymbolTable(name, ctx.start.getLine(), scopes.peek());
         scopes.push(newScope);
     }
 
@@ -187,12 +197,12 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterStatementBlock(ToorlaParser.StatementBlockContext ctx) {
-
+        isInsideALocalBlock = true;
     }
 
     @Override
     public void exitStatementBlock(ToorlaParser.StatementBlockContext ctx) {
-
+        isInsideALocalBlock = false;
     }
 
     @Override
@@ -227,7 +237,11 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterStatementClosedLoop(ToorlaParser.StatementClosedLoopContext ctx) {
-        var newScope = new SymbolTable("while", ctx.start.getLine(), scopes.peek());
+        String name = "while";
+        if(isInsideALocalBlock)
+            name = "nested";
+
+        var newScope = new SymbolTable(name, ctx.start.getLine(), scopes.peek());
         scopes.push(newScope);
     }
 
