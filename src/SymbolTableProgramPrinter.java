@@ -21,12 +21,11 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
     public void enterProgram(ToorlaParser.ProgramContext ctx) {
         var root = new SymbolTable("program", ctx.start.getLine(), null);
         scopes.push(root);
-        SymbolTable.setRoot(root);
     }
 
     @Override
     public void exitProgram(ToorlaParser.ProgramContext ctx) {
-
+        scopes.pop();
     }
 
     @Override
@@ -38,7 +37,7 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
         var key = "class_" + className;
         var value = String.format("Class (name: %s) (parent: %s) (isEntry: %s)", className, parentClassName, isEntry);
 
-        if(SymbolTable.contains(key)) {
+        if(scopes.peek().contains(key)) {
             int line = ctx.start.getLine();
             int column = ctx.ID(0).getSymbol().getCharPositionInLine();
             errorReporter.reportClassRedefinitionError(className, line, column);
@@ -99,6 +98,14 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
         var returnType = ctx.t.getText();
 
         var key = methodType + "_" + methodName;
+
+        if(scopes.peek().contains(key)) {
+            int line = ctx.start.getLine();
+            int column = ctx.ID(0).getSymbol().getCharPositionInLine();
+            errorReporter.reportMethodRedefinitionError(methodName, line, column);
+            key = String.format("%s_%s_%s", methodName, line, column);
+        }
+
         var value = String.format(
                 "%s (name: %s) (return type: [%s]) (parameter list: %s) (access modifier: %s)",
                 methodType,

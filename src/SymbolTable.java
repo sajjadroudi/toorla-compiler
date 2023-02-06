@@ -3,8 +3,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class SymbolTable {
-
-    private static SymbolTable root;
     private static final List<SymbolTable> allInstances = new LinkedList<>();
     public SymbolTable parent;
 
@@ -33,6 +31,10 @@ public class SymbolTable {
 
     public String lookup(String key){
         return table.getOrDefault(key, null);
+    }
+
+    public boolean contains(String key) {
+        return table.containsKey(key);
     }
 
     private String printItems(){
@@ -66,11 +68,4 @@ public class SymbolTable {
                 ;
     }
 
-    public static void setRoot(SymbolTable root) {
-        SymbolTable.root = root;
-    }
-
-    public static boolean contains(String key) {
-        return root.lookup(key) != null;
-    }
 }
