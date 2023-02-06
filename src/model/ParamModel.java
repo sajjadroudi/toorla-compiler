@@ -16,4 +16,9 @@ public class ParamModel {
     public String toString() {
         return String.format("{name: %s, type: %s, index: %s}", name, type, index);
     }
+
+    public String getType() {
+        return type;
+    }
+
 }

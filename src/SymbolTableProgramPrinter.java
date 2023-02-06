@@ -1,4 +1,3 @@
-import gen.ErrorReporter;
 import gen.ToorlaListener;
 import gen.ToorlaParser;
 import model.*;
@@ -153,19 +152,21 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
         var key = methodType + "_" + methodName;
 
-        if(scopes.peek().contains(key)) {
-            int line = ctx.start.getLine();
-            int column = ctx.ID(0).getSymbol().getCharPositionInLine();
-            errorReporter.reportMethodRedefinitionError(methodName, line, column);
-            key = String.format("%s_%s_%s", methodName, line, column);
-        }
-
         SymbolItem value;
         if("constructor".equals(methodType)) {
             value = new ConstructorItem(methodName, accessModifier, Helper.getParametersIndexed(ctx));
         } else {
             value = new MethodItem(methodName, returnType, accessModifier, Helper.getParametersIndexed(ctx));
         }
+
+        var item = scopes.peek().lookup(key);
+        if(item instanceof MethodItem methodItem && methodItem.equals(value)) {
+            int line = ctx.start.getLine();
+            int column = ctx.ID(0).getSymbol().getCharPositionInLine();
+            errorReporter.reportMethodRedefinitionError(methodName, line, column);
+            key = String.format("%s_%s_%s", methodName, line, column);
+        }
+
         scopes.peek().insert(key, value);
 
         var newScope = new SymbolTable(methodName, ctx.start.getLine(), scopes.peek());

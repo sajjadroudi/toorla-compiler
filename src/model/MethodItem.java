@@ -1,5 +1,7 @@
 package model;
 
+import java.util.Objects;
+
 public class MethodItem extends SymbolItem {
 
     private final String returnType;
@@ -35,6 +37,26 @@ public class MethodItem extends SymbolItem {
         }
         builder.append("]");
         return builder.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MethodItem that = (MethodItem) o;
+        return Objects.equals(getName(), that.getName()) && isParamsEqual(that.params);
+    }
+
+    private boolean isParamsEqual(ParamModel[] other) {
+        if(params.length != other.length)
+            return false;
+
+        for(int i = 0; i < params.length; i++) {
+            if(!params[i].getType().equals(other[i].getType()))
+                return false;
+        }
+
+        return true;
     }
 
 }

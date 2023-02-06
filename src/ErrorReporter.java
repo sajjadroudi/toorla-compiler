@@ -1,5 +1,3 @@
-package gen;
-
 import java.util.List;
 
 public class ErrorReporter {
