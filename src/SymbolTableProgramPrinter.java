@@ -3,6 +3,7 @@ import gen.ToorlaListener;
 import gen.ToorlaParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.Stack;
@@ -212,9 +213,17 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void exitStatementVarDef(ToorlaParser.StatementVarDefContext ctx) {
-        var variableNames = ctx.ID();
+        var variableNames = ctx.ID().stream().map(ParseTree::getText).toList();
         for(var variableName : variableNames) {
             var key = "field_" + variableName;
+
+            if(scopes.peek().contains(key)) {
+                int line = ctx.start.getLine();
+                int column = ctx.ID(0).getSymbol().getCharPositionInLine();
+                errorReporter.reportLocalVariableRedefinitionError(variableName, line, column);
+                key = String.format("%s_%s_%s", variableName, line, column);
+            }
+
             var value = String.format("MethodVar (name: %s) (type: %s) (isDefined: true)", variableName, currentMethodVarType);
             scopes.peek().insert(key, value);
         }

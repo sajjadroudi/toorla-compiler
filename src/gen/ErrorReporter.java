@@ -14,8 +14,8 @@ public class ErrorReporter {
         System.err.printf("Error 103: in line [%d:%d], field [%s] has been defined already\n", line, column, fieldName);
     }
 
-    public void reportLocalVariableRedefinitionError() {
-
+    public void reportLocalVariableRedefinitionError(String variableName, int line, int column) {
+        System.err.printf("Error 104: in line [%d:%d], var [%s] has been defined already\n", line, column, variableName);
     }
 
     public void reportCircularInheritanceError() {
