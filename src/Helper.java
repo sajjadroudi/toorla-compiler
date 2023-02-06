@@ -5,7 +5,9 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 public class Helper {
 
@@ -122,6 +124,55 @@ public class Helper {
 
     public static boolean isEntryClass(ToorlaParser.ClassDeclarationContext ctx) {
         return ctx.parent instanceof ToorlaParser.EntryClassDeclarationContext;
+    }
+
+    public static List<String> detectCircularInheritance(Map<String, String> classesToParents) {
+        var classes = classesToParents.keySet();
+        for(String className : classes) {
+            var hierarchy = getHierarchy(className, classesToParents);
+            var uniqueClassesOfHierarchy = new HashSet<>(hierarchy);
+            if(hierarchy.size() != uniqueClassesOfHierarchy.size())
+                return hierarchy;
+        }
+        return null;
+    }
+
+    private static List<String> getHierarchy(String className, Map<String, String> classesToParents) {
+        List<String> hierarchy = new ArrayList<>();
+
+        var parent = className;
+
+        hierarchy.add(parent);
+
+        while(true) {
+            parent = classesToParents.get(parent);
+
+            if(hierarchy.contains(parent)) {
+                hierarchy.add(parent); // To show that the hierarchy has a loop
+                break;
+            }
+
+            if(parent == null || parent.equals("none"))
+                break;
+
+            hierarchy.add(parent);
+        }
+        return hierarchy;
+    }
+
+    public static String extractType(ToorlaParser.ExpressionOtherContext ctx) {
+        if(ctx.n != null) {
+            return "int";
+        } else if(ctx.s != null) {
+            return "string";
+        } else if(ctx.st != null) {
+            return ctx.st.getText() + "[]";
+        } else if(ctx.i != null) {
+            return ctx.i.getText();
+        } else if(ctx.trueModifier != null || ctx.falseModifier != null) {
+            return "boolean";
+        }
+        return null;
     }
 
 }

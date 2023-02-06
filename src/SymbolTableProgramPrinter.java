@@ -32,46 +32,12 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void exitProgram(ToorlaParser.ProgramContext ctx) {
-        var circularInheritanceHierarchy = detectCircularInheritance();
+        var circularInheritanceHierarchy = Helper.detectCircularInheritance(classesToParents);
         if(circularInheritanceHierarchy != null) {
             errorReporter.reportCircularInheritanceError(circularInheritanceHierarchy);
         }
 
         scopes.pop();
-    }
-
-    private List<String> detectCircularInheritance() {
-        var classes = classesToParents.keySet();
-        for(String className : classes) {
-            var hierarchy = getHierarchy(className);
-            var uniqueClassesOfHierarchy = new HashSet<>(hierarchy);
-            if(hierarchy.size() != uniqueClassesOfHierarchy.size())
-                return hierarchy;
-        }
-        return null;
-    }
-
-    private List<String> getHierarchy(String className) {
-        List<String> hierarchy = new ArrayList<>();
-
-        var parent = className;
-
-        hierarchy.add(parent);
-
-        while(true) {
-            parent = classesToParents.get(parent);
-
-            if(hierarchy.contains(parent)) {
-                hierarchy.add(parent); // To show that the hierarchy has a loop
-                break;
-            }
-
-            if(parent == null || parent.equals("none"))
-                break;
-
-            hierarchy.add(parent);
-        }
-        return hierarchy;
     }
 
     @Override
@@ -549,7 +515,7 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterExpressionOther(ToorlaParser.ExpressionOtherContext ctx) {
-        var type = extractType(ctx);
+        var type = Helper.extractType(ctx);
         if(isReturningFromMethod && currentReturningType == null) {
             currentReturningType = type;
         } else if(isAnalyzingMethodVar && currentMethodVarType == null) {
@@ -558,21 +524,6 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
             }
             currentMethodVarType = type;
         }
-    }
-
-    private String extractType(ToorlaParser.ExpressionOtherContext ctx) {
-        if(ctx.n != null) {
-            return "int";
-        } else if(ctx.s != null) {
-            return "string";
-        } else if(ctx.st != null) {
-            return ctx.st.getText() + "[]";
-        } else if(ctx.i != null) {
-            return ctx.i.getText();
-        } else if(ctx.trueModifier != null || ctx.falseModifier != null) {
-            return "boolean";
-        }
-        return null;
     }
 
     @Override
