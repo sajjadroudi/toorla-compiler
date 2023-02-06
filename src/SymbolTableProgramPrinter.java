@@ -165,7 +165,13 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterStatementVarDef(ToorlaParser.StatementVarDefContext ctx) {
-
+        var variableNames = ctx.ID();
+        for(var variableName : variableNames) {
+            var key = "field_" + variableName;
+            var type = "local var"; // TODO
+            var value = String.format("MethodVar (name: %s) (type: %s) (isDefined: true)", variableName, type);
+            scopes.peek().insert(key, value);
+        }
     }
 
     @Override
