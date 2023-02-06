@@ -1,3 +1,4 @@
+import gen.ErrorReporter;
 import gen.ToorlaListener;
 import gen.ToorlaParser;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -14,9 +15,13 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     private boolean isInsideALocalBlock = false;
 
+    private final ErrorReporter errorReporter = new ErrorReporter();
+
     @Override
     public void enterProgram(ToorlaParser.ProgramContext ctx) {
-        scopes.push(new SymbolTable("program", ctx.start.getLine(), null));
+        var root = new SymbolTable("program", ctx.start.getLine(), null);
+        scopes.push(root);
+        SymbolTable.setRoot(root);
     }
 
     @Override
@@ -32,6 +37,14 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
         var key = "class_" + className;
         var value = String.format("Class (name: %s) (parent: %s) (isEntry: %s)", className, parentClassName, isEntry);
+
+        if(SymbolTable.contains(key)) {
+            int line = ctx.start.getLine();
+            int column = ctx.ID(0).getSymbol().getCharPositionInLine();
+            errorReporter.reportClassRedefinitionError(className, line, column);
+            key = String.format("%s_%s_%s", className, line, column);
+        }
+
         scopes.peek().insert(key, value);
 
         var newScope = new SymbolTable(className, ctx.start.getLine(), scopes.peek());
