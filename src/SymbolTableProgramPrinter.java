@@ -127,22 +127,24 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterClosedConditional(ToorlaParser.ClosedConditionalContext ctx) {
-
+        var newScope = new SymbolTable("if", ctx.start.getLine(), scopes.peek());
+        scopes.push(newScope);
     }
 
     @Override
     public void exitClosedConditional(ToorlaParser.ClosedConditionalContext ctx) {
-
+        scopes.pop();
     }
 
     @Override
     public void enterOpenConditional(ToorlaParser.OpenConditionalContext ctx) {
-
+        var newScope = new SymbolTable("if", ctx.start.getLine(), scopes.peek());
+        scopes.push(newScope);
     }
 
     @Override
     public void exitOpenConditional(ToorlaParser.OpenConditionalContext ctx) {
-
+        scopes.pop();
     }
 
     @Override
