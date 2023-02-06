@@ -24,6 +24,10 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     private String currentReturningType = null;
 
+    private final Map<String, List<String>> privateMethods = new HashMap<>(); // className -> list of private methods
+
+    private String currentClassName = null;
+
     @Override
     public void enterProgram(ToorlaParser.ProgramContext ctx) {
         var root = new SymbolTable("program", ctx.start.getLine(), null);
@@ -43,6 +47,9 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
     @Override
     public void enterClassDeclaration(ToorlaParser.ClassDeclarationContext ctx) {
         var className = ctx.ID(0).toString();
+
+        currentClassName = className;
+
         var parentClassName = Helper.getParentClassName(ctx);
 
         classesToParents.put(className, parentClassName);
@@ -67,6 +74,7 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void exitClassDeclaration(ToorlaParser.ClassDeclarationContext ctx) {
+        currentClassName = null;
         scopes.pop();
     }
 
@@ -119,6 +127,14 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
         var accessModifier = (ctx.access_modifier() == null) ? "public" : ctx.access_modifier().getText();
         var methodName = ctx.methodName.getText();
         var returnType = ctx.t.getText();
+
+        if("private".equals(accessModifier) && currentClassName != null) {
+            var list = privateMethods.get(currentClassName);
+            if(list == null)
+                list = new ArrayList<>();
+            list.add(methodName);
+            privateMethods.put(currentClassName, list);
+        }
 
         var key = methodType + "_" + methodName;
 
@@ -505,7 +521,21 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterExpressionMethodsTemp(ToorlaParser.ExpressionMethodsTempContext ctx) {
+        if(ctx.i != null) {
+            var methodName = ctx.i.getText();
+            var keys = privateMethods.keySet();
+            for(String className : keys) {
+                if(className.equals(currentClassName))
+                    continue;
 
+                var methods = privateMethods.get(className);
+                if(methods != null && methods.contains(methodName)) {
+                    int line = ctx.start.getLine();
+                    int column = ctx.ID().getSymbol().getCharPositionInLine();
+                    errorReporter.reportAccessToPrivateMethodError(line, column);
+                }
+            }
+        }
     }
 
     @Override

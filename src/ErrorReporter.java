@@ -38,8 +38,8 @@ public class ErrorReporter {
         System.err.printf("Error 210: in line [%d:%d], return type of this method must be %s\n", line, column, expectedReturnType);
     }
 
-    public void reportAccessToPrivateMethodError() {
-
+    public void reportAccessToPrivateMethodError(int line, int column) {
+        System.err.printf("Error 310: in line [%d:%d], private methods are not accessible outside of class\n", line, column);
     }
 
 }
