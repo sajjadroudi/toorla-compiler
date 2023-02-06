@@ -1,9 +1,11 @@
 import gen.ToorlaParser;
 import model.ParamFieldItem;
+import model.ParamModel;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Helper {
 
@@ -36,33 +38,22 @@ public class Helper {
         return "parameter list: [" + output + "]";
     }
 
-    public static String getParameterListIndexed(ToorlaParser.MethodDeclarationContext ctx) {
+    public static ParamModel[] getParametersIndexed(ToorlaParser.MethodDeclarationContext ctx) {
         var parameterNameList = ctx.ID().subList(1, ctx.ID().size());
         var parameterTypeList = ctx.toorlaType().subList(0, ctx.toorlaType().size() - 1);
 
         final int paramSize = parameterTypeList.size();
 
-        StringBuilder output = new StringBuilder();
+        List<ParamModel> params = new ArrayList<>();
+
         for(int i = 0; i < paramSize; i++) {
-            output
-                    .append("[")
-                    .append("name: ")
-                    .append(parameterNameList.get(i).getText())
-                    .append(", type: ")
-                    .append(parameterTypeList.get(i).getText())
-                    .append(", index: ")
-                    .append(i + 1)
-                    .append("]");
-
-
-            if(i != (paramSize - 1))
-                output.append(", ");
+            var name = parameterNameList.get(i).getText();
+            var type = parameterTypeList.get(i).getText();
+            var param = new ParamModel(name, type, i + 1);
+            params.add(param);
         }
 
-        if(output.isEmpty())
-            return "[]";
-
-        return output.toString();
+        return params.toArray(new ParamModel[0]);
     }
 
     public static ParamFieldItem[] getParameters(ToorlaParser.MethodDeclarationContext ctx) {

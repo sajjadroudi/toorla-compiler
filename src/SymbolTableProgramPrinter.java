@@ -1,7 +1,7 @@
 import gen.ErrorReporter;
 import gen.ToorlaListener;
 import gen.ToorlaParser;
-import model.ParamFieldItem;
+import model.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -63,7 +63,7 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
                 break;
             }
 
-            if(parent.equals("none"))
+            if(parent == null || parent.equals("none"))
                 break;
 
             hierarchy.add(parent);
@@ -81,7 +81,7 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
         var isEntry = Helper.isEntryClass(ctx);
 
         var key = "class_" + className;
-        var value = String.format("Class (name: %s) (parent: %s) (isEntry: %s)", className, parentClassName, isEntry);
+        var value = new ClassItem(className, parentClassName, isEntry);
 
         if(scopes.peek().contains(key)) {
             int line = ctx.start.getLine();
@@ -125,7 +125,7 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
             key = String.format("%s_%s_%s", fieldName, line, column);
         }
 
-        var value = String.format("ClassField (name: %s) (type: %s, isDefined: true)", fieldName, type);
+        var value = new ClassFieldItem(fieldName, type, true);
         scopes.peek().insert(key, value);
     }
 
@@ -160,14 +160,12 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
             key = String.format("%s_%s_%s", methodName, line, column);
         }
 
-        var value = String.format(
-                "%s (name: %s) (return type: [%s]) (parameter list: %s) (access modifier: %s)",
-                methodType,
-                methodName,
-                returnType,
-                Helper.getParameterListIndexed(ctx),
-                accessModifier
-        );
+        SymbolItem value;
+        if("constructor".equals(methodType)) {
+            value = new ConstructorItem(methodName, accessModifier, Helper.getParametersIndexed(ctx));
+        } else {
+            value = new MethodItem(methodName, returnType, accessModifier, Helper.getParametersIndexed(ctx));
+        }
         scopes.peek().insert(key, value);
 
         var newScope = new SymbolTable(methodName, ctx.start.getLine(), scopes.peek());
@@ -176,8 +174,7 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
         var parameters = Helper.getParameters(ctx);
         for(ParamFieldItem param : parameters) {
             var fieldKey = "field_" + param.getName();
-            var fieldValue = param.toString();
-            scopes.peek().insert(fieldKey, fieldValue);
+            scopes.peek().insert(fieldKey, param);
         }
     }
 
@@ -264,7 +261,7 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
                 key = String.format("%s_%s_%s", variableName, line, column);
             }
 
-            var value = String.format("MethodVar (name: %s) (type: %s) (isDefined: true)", variableName, currentMethodVarType);
+            var value = new MethodVarItem(variableName, currentMethodVarType, true);
             scopes.peek().insert(key, value);
         }
 

@@ -1,3 +1,5 @@
+import model.SymbolItem;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,7 +10,7 @@ public class SymbolTable {
 
     private final String name;
     private final int scopeNumber;
-    private final HashMap<String, String> table = new HashMap<>();
+    private final HashMap<String, SymbolItem> table = new HashMap<>();
     private int maxKeyLen = 0;
     private int maxValueLen = 0;
 
@@ -23,13 +25,13 @@ public class SymbolTable {
         return allInstances;
     }
 
-    public void insert(String key, String values){
-        table.put(key, values);
-        maxKeyLen = Math.max(maxKeyLen, key.length()+1);
-        maxValueLen = Math.max(maxValueLen, values.length()+1);
+    public void insert(String key, SymbolItem value){
+        table.put(key, value);
+        maxKeyLen = Math.max(maxKeyLen, key.length() + 1);
+        maxValueLen = Math.max(maxValueLen, value.toString().length() + 1);
     }
 
-    public String lookup(String key){
+    public SymbolItem lookup(String key){
         return table.getOrDefault(key, null);
     }
 
@@ -51,7 +53,7 @@ public class SymbolTable {
 
         for(var entry: table.entrySet()){
             String key = entry.getKey();
-            String value = entry.getValue();
+            String value = entry.getValue().toString();
             key = String.format("%-" + maxKeyLen + "s", key);
             value = String.format("%-" + maxValueLen + "s", value);
             tableString.append("| " + key + "| " + value + "|").append('\n');
