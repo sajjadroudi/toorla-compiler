@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.util.Stack;
+import java.util.*;
 
 public class SymbolTableProgramPrinter implements ToorlaListener  {
 
@@ -18,6 +18,8 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     private final ErrorReporter errorReporter = new ErrorReporter();
 
+    private final Map<String, String> classesToParents = new HashMap<>();
+
     @Override
     public void enterProgram(ToorlaParser.ProgramContext ctx) {
         var root = new SymbolTable("program", ctx.start.getLine(), null);
@@ -26,13 +28,55 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void exitProgram(ToorlaParser.ProgramContext ctx) {
+        var circularInheritanceHierarchy = detectCircularInheritance();
+        if(circularInheritanceHierarchy != null) {
+            errorReporter.reportCircularInheritanceError(circularInheritanceHierarchy);
+        }
+
         scopes.pop();
+    }
+
+    private List<String> detectCircularInheritance() {
+        var classes = classesToParents.keySet();
+        for(String className : classes) {
+            var hierarchy = getHierarchy(className);
+            var uniqueClassesOfHierarchy = new HashSet<>(hierarchy);
+            if(hierarchy.size() != uniqueClassesOfHierarchy.size())
+                return hierarchy;
+        }
+        return null;
+    }
+
+    private List<String> getHierarchy(String className) {
+        List<String> hierarchy = new ArrayList<>();
+
+        var parent = className;
+
+        hierarchy.add(parent);
+
+        while(true) {
+            parent = classesToParents.get(parent);
+
+            if(hierarchy.contains(parent)) {
+                hierarchy.add(parent); // To show that the hierarchy has a loop
+                break;
+            }
+
+            if(parent.equals("none"))
+                break;
+
+            hierarchy.add(parent);
+        }
+        return hierarchy;
     }
 
     @Override
     public void enterClassDeclaration(ToorlaParser.ClassDeclarationContext ctx) {
         var className = ctx.ID(0).toString();
         var parentClassName = Helper.getParentClassName(ctx);
+
+        classesToParents.put(className, parentClassName);
+
         var isEntry = Helper.isEntryClass(ctx);
 
         var key = "class_" + className;

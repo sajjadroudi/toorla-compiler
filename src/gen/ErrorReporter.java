@@ -1,5 +1,7 @@
 package gen;
 
+import java.util.List;
+
 public class ErrorReporter {
 
     public void reportClassRedefinitionError(String className, int line, int column) {
@@ -18,8 +20,20 @@ public class ErrorReporter {
         System.err.printf("Error 104: in line [%d:%d], var [%s] has been defined already\n", line, column, variableName);
     }
 
-    public void reportCircularInheritanceError() {
+    public void reportCircularInheritanceError(List<String> classes) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < classes.size(); i++) {
+            builder
+                    .append("[")
+                    .append(classes.get(i))
+                    .append("]");
 
+            if(i != classes.size() - 1) {
+                builder.append(" -> ");
+            }
+        }
+
+        System.err.printf("Error 410: Invalid inheritance %s\n", builder);
     }
 
     public void reportIncompatibleReturnTypeError() {
