@@ -227,22 +227,24 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterStatementClosedLoop(ToorlaParser.StatementClosedLoopContext ctx) {
-
+        var newScope = new SymbolTable("while", ctx.start.getLine(), scopes.peek());
+        scopes.push(newScope);
     }
 
     @Override
     public void exitStatementClosedLoop(ToorlaParser.StatementClosedLoopContext ctx) {
-
+        scopes.pop();
     }
 
     @Override
     public void enterStatementOpenLoop(ToorlaParser.StatementOpenLoopContext ctx) {
-
+        var newScope = new SymbolTable("while", ctx.start.getLine(), scopes.peek());
+        scopes.push(newScope);
     }
 
     @Override
     public void exitStatementOpenLoop(ToorlaParser.StatementOpenLoopContext ctx) {
-
+        scopes.pop();
     }
 
     @Override
