@@ -1,6 +1,7 @@
 import gen.ErrorReporter;
 import gen.ToorlaListener;
 import gen.ToorlaParser;
+import model.ParamFieldItem;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -173,14 +174,9 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
         scopes.push(newScope);
 
         var parameters = Helper.getParameters(ctx);
-        for(ParameterModel param : parameters) {
-            var fieldKey = "field_" + param.name;
-            var fieldValue = String.format(
-                    "ParamField (name: %s) (type: %s) (isDefined: %s)",
-                    param.name,
-                    param.type,
-                    param.isDefined
-            );
+        for(ParamFieldItem param : parameters) {
+            var fieldKey = "field_" + param.getName();
+            var fieldValue = param.toString();
             scopes.peek().insert(fieldKey, fieldValue);
         }
     }

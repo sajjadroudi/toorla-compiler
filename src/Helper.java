@@ -1,4 +1,5 @@
 import gen.ToorlaParser;
+import model.ParamFieldItem;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -64,20 +65,20 @@ public class Helper {
         return output.toString();
     }
 
-    public static ParameterModel[] getParameters(ToorlaParser.MethodDeclarationContext ctx) {
+    public static ParamFieldItem[] getParameters(ToorlaParser.MethodDeclarationContext ctx) {
         var parameterNameList = ctx.ID().subList(1, ctx.ID().size());
         var parameterTypeList = ctx.toorlaType().subList(0, ctx.toorlaType().size() - 1);
 
         final int paramSize = parameterTypeList.size();
 
-        var list = new ArrayList<ParameterModel>();
+        var list = new ArrayList<ParamFieldItem>();
 
         for(int i = 0; i < paramSize; i++) {
-            var model = new ParameterModel(parameterNameList.get(i).getText(), parameterTypeList.get(i).getText());
+            var model = new ParamFieldItem(parameterNameList.get(i).getText(), parameterTypeList.get(i).getText());
             list.add(model);
         }
 
-        return list.toArray(new ParameterModel[0]);
+        return list.toArray(new ParamFieldItem[0]);
     }
 
     public static boolean isMainMethod(ToorlaParser.MethodDeclarationContext ctx) {
