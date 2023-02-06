@@ -34,8 +34,8 @@ public class ErrorReporter {
         System.err.printf("Error 410: Invalid inheritance %s\n", builder);
     }
 
-    public void reportIncompatibleReturnTypeError() {
-
+    public void reportIncompatibleReturnTypeError(String expectedReturnType, int line, int column) {
+        System.err.printf("Error 210: in line [%d:%d], return type of this method must be %s\n", line, column, expectedReturnType);
     }
 
     public void reportAccessToPrivateMethodError() {

@@ -20,6 +20,10 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     private final Map<String, String> classesToParents = new HashMap<>();
 
+    private boolean isReturningFromMethod = false;
+
+    private String currentReturningType = null;
+
     @Override
     public void enterProgram(ToorlaParser.ProgramContext ctx) {
         var root = new SymbolTable("program", ctx.start.getLine(), null);
@@ -181,6 +185,13 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void exitMethodDeclaration(ToorlaParser.MethodDeclarationContext ctx) {
+        var returnType = ctx.t.getText();
+        if(returnType != null && currentReturningType != null && !returnType.equals(currentReturningType)) {
+            int line = ctx.start.getLine();
+            int column = ctx.ID(0).getSymbol().getCharPositionInLine();
+            errorReporter.reportIncompatibleReturnTypeError(returnType, line, column);
+        }
+        currentReturningType = null;
         scopes.pop();
     }
 
@@ -302,12 +313,12 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterStatementReturn(ToorlaParser.StatementReturnContext ctx) {
-
+        isReturningFromMethod = true;
     }
 
     @Override
     public void exitStatementReturn(ToorlaParser.StatementReturnContext ctx) {
-
+        isReturningFromMethod = false;
     }
 
     @Override
@@ -538,22 +549,30 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterExpressionOther(ToorlaParser.ExpressionOtherContext ctx) {
-        if(!isAnalyzingMethodVar || currentMethodVarType != null)
-            return;
-
-        if(ctx.n != null) {
-            currentMethodVarType = "int";
-        } else if(ctx.s != null) {
-            currentMethodVarType = "string";
-        } else if(ctx.st != null) {
-            currentMethodVarType = ctx.st.getText() + "[]";
-        } else if(ctx.i != null) {
-            currentMethodVarType = ctx.i.getText();
-        } else if(ctx.trueModifier != null || ctx.falseModifier != null) {
-            currentMethodVarType = "boolean";
-        } else {
-            currentMethodVarType = "local var";
+        var type = extractType(ctx);
+        if(isReturningFromMethod && currentReturningType == null) {
+            currentReturningType = type;
+        } else if(isAnalyzingMethodVar && currentMethodVarType == null) {
+            if(type == null) {
+                type = "local var";
+            }
+            currentMethodVarType = type;
         }
+    }
+
+    private String extractType(ToorlaParser.ExpressionOtherContext ctx) {
+        if(ctx.n != null) {
+            return "int";
+        } else if(ctx.s != null) {
+            return "string";
+        } else if(ctx.st != null) {
+            return ctx.st.getText() + "[]";
+        } else if(ctx.i != null) {
+            return ctx.i.getText();
+        } else if(ctx.trueModifier != null || ctx.falseModifier != null) {
+            return "boolean";
+        }
+        return null;
     }
 
     @Override
