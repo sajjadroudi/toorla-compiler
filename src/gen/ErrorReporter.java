@@ -10,8 +10,8 @@ public class ErrorReporter {
         System.err.printf("Error 102: in line [%d:%d], method [%s] has been defined already\n", line, column, methodName);
     }
 
-    public void reportFieldRedefinitionError() {
-
+    public void reportFieldRedefinitionError(String fieldName, int line, int column) {
+        System.err.printf("Error 103: in line [%d:%d], field [%s] has been defined already\n", line, column, fieldName);
     }
 
     public void reportLocalVariableRedefinitionError() {

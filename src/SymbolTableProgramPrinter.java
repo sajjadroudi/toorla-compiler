@@ -71,6 +71,14 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
         var type = ctx.fieldType.getText();
 
         var key = "field_" + fieldName;
+
+        if(scopes.peek().contains(key)) {
+            int line = ctx.start.getLine();
+            int column = ctx.ID(0).getSymbol().getCharPositionInLine();
+            errorReporter.reportFieldRedefinitionError(fieldName, line, column);
+            key = String.format("%s_%s_%s", fieldName, line, column);
+        }
+
         var value = String.format("ClassField (name: %s) (type: %s, isDefined: true)", fieldName, type);
         scopes.peek().insert(key, value);
     }
