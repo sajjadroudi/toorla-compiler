@@ -35,7 +35,7 @@ entry class MainClass:
     function main() returns int:
         var a = 5;
         var b = 6;
-        arr = new int[4];
+        var arr = new int[4];
         var sum=0;
         var sub=0;
         var bigger="";

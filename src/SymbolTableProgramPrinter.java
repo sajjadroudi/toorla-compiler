@@ -9,6 +9,8 @@ import java.util.Stack;
 public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     private final Stack<SymbolTable> scopes = new Stack<>();
+    private boolean isAnalyzingMethodVar = false;
+    private String currentMethodVarType = null;
 
     @Override
     public void enterProgram(ToorlaParser.ProgramContext ctx) {
@@ -165,18 +167,20 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterStatementVarDef(ToorlaParser.StatementVarDefContext ctx) {
-        var variableNames = ctx.ID();
-        for(var variableName : variableNames) {
-            var key = "field_" + variableName;
-            var type = "local var"; // TODO
-            var value = String.format("MethodVar (name: %s) (type: %s) (isDefined: true)", variableName, type);
-            scopes.peek().insert(key, value);
-        }
+        isAnalyzingMethodVar = true;
     }
 
     @Override
     public void exitStatementVarDef(ToorlaParser.StatementVarDefContext ctx) {
+        var variableNames = ctx.ID();
+        for(var variableName : variableNames) {
+            var key = "field_" + variableName;
+            var value = String.format("MethodVar (name: %s) (type: %s) (isDefined: true)", variableName, currentMethodVarType);
+            scopes.peek().insert(key, value);
+        }
 
+        isAnalyzingMethodVar = false;
+        currentMethodVarType = null;
     }
 
     @Override
@@ -441,7 +445,22 @@ public class SymbolTableProgramPrinter implements ToorlaListener  {
 
     @Override
     public void enterExpressionOther(ToorlaParser.ExpressionOtherContext ctx) {
+        if(!isAnalyzingMethodVar || currentMethodVarType != null)
+            return;
 
+        if(ctx.n != null) {
+            currentMethodVarType = "int";
+        } else if(ctx.s != null) {
+            currentMethodVarType = "string";
+        } else if(ctx.st != null) {
+            currentMethodVarType = ctx.st.getText() + "[]";
+        } else if(ctx.i != null) {
+            currentMethodVarType = ctx.i.getText();
+        } else if(ctx.trueModifier != null || ctx.falseModifier != null) {
+            currentMethodVarType = "boolean";
+        } else {
+            currentMethodVarType = "local var";
+        }
     }
 
     @Override
